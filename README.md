@@ -259,13 +259,85 @@ For detailed installation instructions for different GPU generations:
 Automatically generate a sequence of images and transform them into 10s videos using a unified headless or UI pipeline:
 - Start the server normally (`python wgp.py`) and navigate to the **Auto Pipeline** tab.
 - Provide a `\n\n` separated list of prompts, or a `.txt` file absolute path.
-- Or trigger headlessly via Python using `gradio_client`:
-  ```python
-  from gradio_client import Client
-  client = Client("http://127.0.0.1:7860/")
-  client.predict(prompt_text="A dog running\n\nA cat jumping", api_name="/auto_pipeline")
-  ```
 - Outputs will automatically save in `outputs/auto_pipeline/` sequentially.
+
+#### Passing LoRAs via the UI
+In the **Auto Pipeline** tab, two LoRA input fields are available:
+- **Flux LoRAs** – applied during the **image generation** step (Flux 2 Klein 9B).
+- **LTX LoRAs** – applied during the **video generation** step (LTX 2.3 Distilled).
+
+Enter LoRA filenames or paths separated by commas, for example:
+```
+my_flux_lora.safetensors, another_lora.safetensors
+```
+
+#### Passing LoRAs in API / Headless Mode
+Trigger the pipeline headlessly via Python using `gradio_client`. The `predict` call accepts 4 positional arguments:
+
+| Position | Parameter | Description |
+|----------|-----------|-------------|
+| 1 | `prompt_text` | Prompts separated by `\n\n`, or absolute path to a `.txt` file |
+| 2 | `custom_image_path` | *(Optional)* Absolute path to a custom start image (only used when 1 prompt is given) |
+| 3 | `flux_loras` | *(Optional)* Comma-separated LoRA names/paths for **Flux image generation** |
+| 4 | `ltx_loras` | *(Optional)* Comma-separated LoRA names/paths for **LTX video generation** |
+
+**Example – No LoRAs:**
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+client.predict(
+    "A dog running\n\nA cat jumping",  # prompts
+    "",                                # no custom image
+    "",                                # no Flux LoRAs
+    "",                                # no LTX LoRAs
+    api_name="/auto_pipeline"
+)
+```
+
+**Example – With Flux LoRA only (for image generation):**
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+client.predict(
+    "A cinematic portrait of a warrior",
+    "",
+    "my_flux_style.safetensors",       # Flux LoRA applied to image gen
+    "",                                # no LTX LoRA
+    api_name="/auto_pipeline"
+)
+```
+
+**Example – With both Flux and LTX LoRAs:**
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+client.predict(
+    "A dragon soaring over mountains\n\nA phoenix rising from flames",
+    "",
+    "flux_style_lora.safetensors",             # Flux LoRA for image step
+    "ltx_motion_lora.safetensors, ltx_vfx.safetensors",  # Multiple LTX LoRAs for video step
+    api_name="/auto_pipeline"
+)
+```
+
+**Example – With a custom start image (single prompt only):**
+```python
+from gradio_client import Client
+
+client = Client("http://127.0.0.1:7860/")
+client.predict(
+    "A futuristic city at sunset",
+    "C:/my_images/city_start.png",     # custom start image (skips Flux generation)
+    "",
+    "ltx_cinematic.safetensors",       # LTX LoRA for video generation
+    api_name="/auto_pipeline"
+)
+```
+
+> **Note:** LoRA files must already be present in your WanGP `loras/` directory or provided as absolute paths accessible to the server.
 
 ## 📚 Documentation
 

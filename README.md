@@ -28,6 +28,7 @@ WanGP supports the Wan (and derived models) but also Hunyuan Video, Flux, Qwen, 
 - [🚀 Quick Start](#-quick-start)
 - [📦 Installation](#-installation)
 - [🎯 Usage](#-usage)
+  - [Auto Pipeline](#auto-pipeline-flux-2-klein-9b---ltx-23-distilled-video)
 - [📚 Documentation](#-documentation)
 - [🔗 Related Projects](#-related-projects)
 
@@ -253,6 +254,18 @@ For detailed installation instructions for different GPU generations:
 - **[Finetunes](docs/FINETUNES.md)** - Add manually new models to WanGP
 - **[VACE ControlNet](docs/VACE.md)** - Advanced video control and manipulation
 - **[Command Line Reference](docs/CLI.md)** - All available command line options
+
+### Auto Pipeline (Flux 2 Klein 9b -> LTX 2.3 Distilled Video)
+Automatically generate a sequence of images and transform them into 10s videos using a unified headless or UI pipeline:
+- Start the server normally (`python wgp.py`) and navigate to the **Auto Pipeline** tab.
+- Provide a `\n\n` separated list of prompts, or a `.txt` file absolute path.
+- Or trigger headlessly via Python using `gradio_client`:
+  ```python
+  from gradio_client import Client
+  client = Client("http://127.0.0.1:7860/")
+  client.predict(prompt_text="A dog running\n\nA cat jumping", api_name="/auto_pipeline")
+  ```
+- Outputs will automatically save in `outputs/auto_pipeline/` sequentially.
 
 ## 📚 Documentation
 

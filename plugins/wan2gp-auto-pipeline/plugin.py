@@ -4,6 +4,7 @@ import os
 import shutil
 from pathlib import Path
 from shared.api import init
+import cv2
 
 PlugIn_Name = "Auto Pipeline"
 PlugIn_Id = "AutoPipeline"
@@ -76,11 +77,29 @@ class AutoPipelinePlugin(WAN2GPPlugin):
                 
                 if img_res.success and img_res.generated_files:
                     raw_img_path = img_res.generated_files[0]
-                    # Copy to sequential name in auto_pipeline folder
-                    ext = os.path.splitext(raw_img_path)[1]
-                    img_path = os.path.join(self.output_dir, f"{seq_num}_flux_image{ext}")
-                    shutil.copy2(raw_img_path, img_path)
-                    results_log.append(f"{seq_num}: Image generated -> {img_path}")
+                    raw_ext = os.path.splitext(raw_img_path)[1].lower()
+                    img_path = os.path.join(self.output_dir, f"{seq_num}_flux_image.png")
+
+                    if raw_ext in (".mp4", ".avi", ".mov", ".mkv"):
+                        # WanGP returned a video container – extract the first frame as PNG
+                        results_log.append(f"{seq_num}: API returned video file ({raw_ext}), extracting first frame...")
+                        cap = cv2.VideoCapture(raw_img_path)
+                        ret, frame = cap.read()
+                        cap.release()
+                        if ret:
+                            cv2.imwrite(img_path, frame)
+                            results_log.append(f"{seq_num}: First frame extracted -> {img_path}")
+                        else:
+                            results_log.append(f"{seq_num}: Failed to extract frame from returned video. Skipping.")
+                            continue
+                    elif raw_ext in (".png", ".jpg", ".jpeg", ".webp"):
+                        shutil.copy2(raw_img_path, img_path)
+                        results_log.append(f"{seq_num}: Image generated -> {img_path}")
+                    else:
+                        # Unknown extension – copy as-is and warn
+                        img_path = os.path.join(self.output_dir, f"{seq_num}_flux_image{raw_ext}")
+                        shutil.copy2(raw_img_path, img_path)
+                        results_log.append(f"{seq_num}: Image generated (unknown ext '{raw_ext}') -> {img_path}")
                 else:
                     results_log.append(f"{seq_num}: Failed to generate image.")
                     if img_res.errors:

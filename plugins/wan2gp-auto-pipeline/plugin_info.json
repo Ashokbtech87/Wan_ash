@@ -1,0 +1,8 @@
+{
+  "name": "Auto Pipeline",
+  "author": "AI Assistant",
+  "version": "1.0.0",
+  "description": "Combines Flux 2 Klein 9B and LTX 2.3 Distilled into an automated sequence pipeline",
+  "date": "",
+  "wan2gp_version": ""
+}
